@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="nevicelabs.pibiti">
+
+    <!-- Solicita permissões para utlizar o bluetooth -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <!-- Instruções do April Beacons SDK -->
+        <!-- 声明应用需要使用设备的蓝牙BLE -->
+        <service
+            android:name="com.aprilbrother.aprilbrothersdk.service.BeaconService"
+            android:exported="false"
+            tools:ignore="WrongManifestParent" />
+        <!-- support modify abeacon with sdk1.6.0 -->
+        <service
+            android:name="com.aprilbrother.aprilbrothersdk.services.ABeaconUartService"
+            android:exported="false"
+            tools:ignore="WrongManifestParent" />
+        <service
+            android:name="com.aprilbrother.aprilbrothersdk.services.UartService"
+            android:exported="false"
+            tools:ignore="WrongManifestParent" />
+        <!-- Fim das instruções do April Beacons SDK -->
+
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service android:name=".MensagensService" />
+
+        <meta-data
+            android:name="com.google.android.nearby.messages.API_KEY"
+            android:value="AIzaSyAc70cM5OT1HngcgABcYo4P-i3geNhE4tc" />
+
+        <activity
+            android:name=".EddyStoneModifyActivity"
+            android:parentActivityName=".MainActivity"
+            android:label="@string/title_activity_eddy_stone_modify"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+
+    </application>
+
+</manifest>
