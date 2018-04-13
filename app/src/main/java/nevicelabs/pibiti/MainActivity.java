@@ -13,6 +13,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -72,6 +73,11 @@ public class MainActivity extends AppCompatActivity implements
 
         Intent bluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         startActivityForResult(bluetoothIntent, BLUETOOTH_ENABLE_REQUEST_ID);
+    }
+
+    public void iniciarLoginAtivity(View view) {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
     }
 
     private void requisitarPermissao() {
