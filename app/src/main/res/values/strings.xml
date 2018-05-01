@@ -1,10 +1,16 @@
 <resources>
     <string name="app_name">PIBITI</string>
-    <string name="padrao">Buscando mensagens...</string>
+    <string name="padrao">Selecione o modo de interação</string>
     <string name="active">Olá Mundo!</string>
+    <string name="botao_inscrever">Inscrever-se</string>
+    <string name="botao_transmitir">Transmitir</string>
+
     <!-- Estas duas strings estão definidas no projeto em Google Developer -->
     <string name="Namespace">beacon-project-198921</string>
     <string name="Type">JD</string>
+
+    <!-- ID do Cliente OAuth 2.0 -->
+    <string name="idClienteOAuth">325900729453-mt0j1llcf06gmvo73ekmpog3ls72i9vc.apps.googleusercontent.com</string>
 
     <string name="title_activity_eddy_stone_modify">EddyStoneModifyActivity</string>
 

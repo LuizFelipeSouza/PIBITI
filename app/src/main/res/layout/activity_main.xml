@@ -26,6 +26,25 @@
         android:layout_gravity="bottom|end"
         android:layout_marginBottom="47dp"
         android:layout_marginEnd="33dp"
-        app:srcCompat="@android:drawable/btn_default" />
+        app:srcCompat="@android:drawable/ic_menu_add" />
+    <Button
+            android:id="@+id/botaoTransmitir"
+            android:text="Transmitir"
+            android:onClick="transmitir"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="50dp"
+            android:layout_marginBottom="191dp" />
+    <Button
+            android:id="@+id/botaoInscrever"
+            android:text="Inscrever-se"
+            android:onClick="inscrever"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"
+            android:layout_marginBottom="191dp"
+            android:layout_alignTop="@+id/botaoTransmitir"
+            android:layout_alignEnd="@+id/botaoMenuConfigId"/>
 
 </RelativeLayout>

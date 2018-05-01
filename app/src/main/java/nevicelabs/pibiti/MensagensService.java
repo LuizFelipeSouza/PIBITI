@@ -4,11 +4,11 @@ import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -16,16 +16,14 @@ import com.google.android.gms.nearby.messages.Message;
 import com.google.android.gms.nearby.messages.MessageListener;
 
 /**
- * Esta classe service escuta as mensagens enviadas por dispositivos bluetooth no backgorund do app.
+ * Esta classe service excuta as mensagens enviadas por dispositivos bluetooth no backgorund do app.
  * Quando uma mensagem é encontrada, o método onHandleIntent é chamado para lidar com seu conteúdo.
  */
 public class MensagensService extends IntentService {
 
     private static final int MESSAGES_NOTIFICATION_ID = 1;
-    private Notification notificacao;
-    private String mensagem;
 
-    // Construtor sem argumentos para a definição do Service em AndroidManifest
+    // Construtuor sem argumentos apra a definição do Service em AndroidManifest.xml
     public MensagensService() {
         super("name");
     }
@@ -45,37 +43,30 @@ public class MensagensService extends IntentService {
         criarNotificacao();
     }
 
-    /**
-     * Método executado quando startSevice() é chamado em MainActivity
-     * @param intent
-     * @param flags
-     * @param startId
-     * @return
-     */
     @Override
     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
-        Log.i("", "Serviço iniciado");
+        Log.i("", "Serviço iniciado onStartComand()");
         return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.i("","Serviço interrompido");
+        Log.i("", "Serviço interrompido onDestroy()");
     }
 
     /**
      * Este método é chamado quando o aplicativo encontra uma mensagem enviada por um dispositivo.
+     *
      * @param intent
      */
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        // startForeground(MESSAGES_NOTIFICATION_ID, notificacao);
+        Log.i("", "Entrando no método de execução onHandleIntent()");
         MessageListener listener = new MessageListener() {
             @Override
             public void onFound(Message message) {
                 Log.i("", "Mensagem encontrada: " + message);
-                mensagem = message.toString();
                 atualizarNotificacao(message);
             }
 
@@ -83,48 +74,50 @@ public class MensagensService extends IntentService {
             public void onLost(Message message) {
                 super.onLost(message);
                 Log.i("", "Fora do alcance da mensagem: " + message);
-                mensagem = message.toString();
-                atualizarNotificacao(message);
             }
         };
     }
 
     private void criarNotificacao() {
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(android.R.drawable.star_big_on)
+                .setSmallIcon(android.R.drawable.star_on)
                 .setContentTitle("PIBITI")
                 .setContentText("Buscando mensagens...");
 
-        // Cria um intent para que quando a notificação seja tocada, a MainAcitivity seja aberta
         Intent resultIntent = new Intent(this, MainActivity.class);
-
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(MainActivity.class);
         stackBuilder.addNextIntent(resultIntent);
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(
-                0, PendingIntent.FLAG_UPDATE_CURRENT);
-
+                0,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
         mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
+        mNotificationManager.notify(MESSAGES_NOTIFICATION_ID, mBuilder.build());
+    }
+
+    private void atualizarNotificacao(Message mensagem) {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificacao = mBuilder.build();
+        Intent launchIntent = new Intent(getApplicationContext(), MainActivity.class);
+        launchIntent.setAction(Intent.ACTION_MAIN);
+        launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 
-        notificationManager.notify(MESSAGES_NOTIFICATION_ID, notificacao);
-    }
+        String titulo = mensagem.getType();
+        String texto = new String(mensagem.getContent());
+        PendingIntent intent = PendingIntent.getActivity(getApplicationContext(),
+                0, launchIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-    private void atualizarNotificacao(Message messages) {
-       NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        NotificationCompat.Builder mNotifyBuilder = new NotificationCompat.Builder(this)
-                .setContentTitle("Nova mensagem")
-                .setContentText(messages.toString())
-                .setSmallIcon(android.R.drawable.stat_notify_more);
+        NotificationCompat.Builder notificacao = new NotificationCompat.Builder(this);
+        notificacao.setSmallIcon(android.R.drawable.star_on);
+        notificacao.setContentTitle(titulo);
+        notificacao.setContentText(texto);
+        notificacao.setContentIntent(intent);
 
-        manager.notify(MESSAGES_NOTIFICATION_ID, mNotifyBuilder.build());
-    }
-
-    public String getMensagem() {
-        return this.mensagem;
+        notificationManager.notify(MESSAGES_NOTIFICATION_ID, notificacao.build());
     }
 }

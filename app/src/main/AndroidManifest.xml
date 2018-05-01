@@ -7,6 +7,12 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
+    <!-- Permissão para acessar a localização -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Permissao para utilizar a internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
@@ -19,28 +25,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <!-- Instruções do April Beacons SDK -->
-        <!-- 声明应用需要使用设备的蓝牙BLE -->
-        <service
-            android:name="com.aprilbrother.aprilbrothersdk.service.BeaconService"
-            android:exported="false"
-            tools:ignore="WrongManifestParent" />
-        <!-- support modify abeacon with sdk1.6.0 -->
-        <service
-            android:name="com.aprilbrother.aprilbrothersdk.services.ABeaconUartService"
-            android:exported="false"
-            tools:ignore="WrongManifestParent" />
-        <service
-            android:name="com.aprilbrother.aprilbrothersdk.services.UartService"
-            android:exported="false"
-            tools:ignore="WrongManifestParent" />
-        <!-- Fim das instruções do April Beacons SDK -->
-
         <service android:name=".MensagensService" />
 
         <meta-data
             android:name="com.google.android.nearby.messages.API_KEY"
-            android:value="AIzaSyAc70cM5OT1HngcgABcYo4P-i3geNhE4tc" />
+            android:value="AIzaSyCPjCRo1mxecIYiwqWbuSEjkhrsvQ2mmrk" />
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -48,6 +37,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".EddyStoneModifyActivity"
             android:label="@string/title_activity_eddy_stone_modify"
@@ -57,6 +47,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login"
@@ -65,6 +56,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+
     </application>
 
 </manifest>
