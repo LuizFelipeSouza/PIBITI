@@ -52,15 +52,16 @@ public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 123;
     private GoogleSignInClient googleSignInClient;
     private FirebaseAuth firebaseAuth;
-    private String token;
-    private Usuario usuario;
+    private static Usuario usuario;
+    private UsuarioDAO dao = new UsuarioDAO();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Google Sign-In padrão requisitando apenas email. O requestToken é para o Firebase
+        // Google Sign-In padrão requisitando apenas email.
+        // O token é encontrado nas credenciais do projeto no Google Console e é utilizado pelo Firebase
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(
                 GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.idClienteOAuth))
@@ -109,16 +110,24 @@ public class LoginActivity extends AppCompatActivity {
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
+                Log.i("", "Login da Google executado. Autenticando com Firebase");
                 // Caso o login da Google tenha sido realizado com sucesso...
                 GoogleSignInAccount acc = task.getResult(ApiException.class);
                 // ... autenticar com o Firebase
                 autenticarFirebaseComGoogle(acc);
+                Log.i("","Método de autenticação com o Firebase executado!");
             } catch (ApiException e) {
+                Log.i("", "Api Exception");
                 e.printStackTrace();
             }
         }
     }
 
+    /**
+     * Neste método é feita a autneticação com o Firebase.
+     * Após feita a atenticação, preenchemos os atributos do objeto Usuario
+     * @param account
+     */
     private void autenticarFirebaseComGoogle(GoogleSignInAccount account) {
         Log.i("", "Autenticando firebase com Google" + account.getId());
 
@@ -129,11 +138,15 @@ public class LoginActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
-                            Log.d("", "signInWithCredential:success");
+                            Log.d("", "Sucesso ao fazer login");
                             FirebaseUser user = firebaseAuth.getCurrentUser();
 
+                            Log.i("", "Settando informações do usuário");
                             usuario.setNome(user.getDisplayName());
                             usuario.setEmail(user.getEmail());
+
+                            Log.i("", "Enviando objeto Usuario ao DAO");
+                            dao.adicionar(usuario);
 
                             // updateUI(user);
                         } else {
@@ -150,12 +163,14 @@ public class LoginActivity extends AppCompatActivity {
     public void sair(View view) {
         // SignOut do Firebase
         firebaseAuth.signOut();
+        Log.i("", "Saindo do Firebase");
 
         // SignOut do Google
         googleSignInClient.signOut().addOnCompleteListener(this,
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
+                        Log.i("", "Saindo do Google Sign In");
                         updateUI(null);
                     }
                 });
@@ -168,6 +183,10 @@ public class LoginActivity extends AppCompatActivity {
 
     private void updateUI(GoogleSignInAccount account) {
         // Faz alguma coisa
+    }
+
+    public static Usuario getUsuario() {
+        return usuario;
     }
 }
 

@@ -7,7 +7,11 @@ public class Usuario {
 
     private String nome;
     private String email;
-    private long matricula;
+    private String matricula;
+    private long numDeHoras;
+
+    // O construtor vazio é usado pelo Firebase Database
+    public Usuario() {}
 
     public String getNome() {
         return nome;
@@ -25,11 +29,19 @@ public class Usuario {
         this.email = email;
     }
 
-    public long getMatricula() {
+    public String getMatricula() {
         return matricula;
     }
 
-    public void setMatricula(long matricula) {
+    public void setMatricula(String matricula) {
         this.matricula = matricula;
+    }
+
+    public long getNumDeHoras() {
+        return numDeHoras;
+    }
+
+    public void setNumDeHoras(long numDeHoras) {
+        this.numDeHoras = numDeHoras;
     }
 }

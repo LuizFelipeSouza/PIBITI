@@ -12,8 +12,13 @@ import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.TextView;
 
+import android.widget.Toast;
 import com.google.android.gms.nearby.messages.Message;
 import com.google.android.gms.nearby.messages.MessageListener;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * Esta classe service excuta as mensagens enviadas por dispositivos bluetooth no backgorund do app.
@@ -22,6 +27,9 @@ import com.google.android.gms.nearby.messages.MessageListener;
 public class MensagensService extends IntentService {
 
     private static final int MESSAGES_NOTIFICATION_ID = 1;
+    private Date horarioIncial;
+    private Date horarioFinal;
+    Usuario usuario = LoginActivity.getUsuario();
 
     // Construtuor sem argumentos apra a definição do Service em AndroidManifest.xml
     public MensagensService() {
@@ -63,10 +71,14 @@ public class MensagensService extends IntentService {
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         Log.i("", "Entrando no método de execução onHandleIntent()");
+        horarioIncial = GregorianCalendar.getInstance().getTime();
+        Log.i("", "Horário: " + horarioIncial);
+
         MessageListener listener = new MessageListener() {
             @Override
             public void onFound(Message message) {
                 Log.i("", "Mensagem encontrada: " + message);
+                horarioIncial = GregorianCalendar.getInstance().getTime();
                 atualizarNotificacao(message);
             }
 
@@ -74,6 +86,7 @@ public class MensagensService extends IntentService {
             public void onLost(Message message) {
                 super.onLost(message);
                 Log.i("", "Fora do alcance da mensagem: " + message);
+                horarioFinal = GregorianCalendar.getInstance().getTime();
             }
         };
     }
