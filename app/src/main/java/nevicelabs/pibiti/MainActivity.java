@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -21,9 +22,13 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.common.internal.Constants;
+import com.google.android.gms.location.*;
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.messages.*;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import static android.content.ContentValues.TAG;
 import static com.google.android.gms.nearby.messages.Strategy.BLE_ONLY;
@@ -31,42 +36,60 @@ import static com.google.android.gms.nearby.messages.Strategy.BLE_ONLY;
 public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        ResultCallback<LocationSettingsResult>
-{
+        ResultCallback<LocationSettingsResult> {
 
+    // Constantes
     private static final int CODIGO_PERMISSOES = 1111;
-    private static final String CHAVE_INSCRITO = "inscrito";
+    private static final float GEOFENCE_RADIUS_IN_METERS = 100;
+    // Variáveis relativas à Location API
+    private LocationRequest mLocationRequest;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private LocationCallback mLocationCallback;
+    private Location localizacaoAtual;
+    // Variáveis relativas aos geofences
+    private GeofencingClient mGeofencingClient;
+    private Geofence geofence;
+    private PendingIntent mGeofencePendingIntent;
+    private Location coordenadasDcomp = new Location("-11,151344,-37,615539");
+    // private double[] coordenadas = {-10.922550, -37.103778};
+    private double[] coordenadas = {-11.150442,-37.615823};
+    // Cliente para as APIs Google
     private GoogleApiClient googleClient;
-    private TextView mensagem;
-    private MessageListener listener;
-    private BluetoothAdapter bluetoothAdapter;
-    private static final int BLUETOOTH_ENABLE_REQUEST_ID = 1;
-    private boolean inscrito = false;
-    private String[] permissoes = {
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.BLUETOOTH,
-            Manifest.permission.BLUETOOTH_ADMIN,
-            Manifest.permission.INTERNET };
+    // Lista de permissões
+    private String[] permissoes = {Manifest.permission.ACCESS_FINE_LOCATION};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        mensagem = (TextView) findViewById(R.id.mensagemId);
-
-        // TODO: O que significa esse savedInstance?
-        if(savedInstanceState != null) {
-            inscrito = savedInstanceState.getBoolean(CHAVE_INSCRITO, false);
-        }
-
         // Verificamos se as permissões necessárias foram concedidas e as requisitamos, caso não
         verificarPermissoes();
 
-        // Requsita a ativação do Bluetooth ao iniciar a Activity
-        Intent bluetoothIntent = new Intent(bluetoothAdapter.ACTION_REQUEST_ENABLE);
-        startActivityForResult(bluetoothIntent, BLUETOOTH_ENABLE_REQUEST_ID);
+        // Cria um cliente das APIs Google
+        buildGoogleApiClient();
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        mGeofencingClient = LocationServices.getGeofencingClient(this);
+
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+                if (locationResult == null) {
+                    Log.i("Localização", "Localização nula");
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    // Update UI with location data
+                    Log.i("Localização", "Localização: " + location);
+                }
+            }
+        };
+
+        receberLocalizacao();
+        verificarConfiguracoesAtuaisDeLocalizacao();
+        adicionarGeofences();
     }
 
     public void iniciarLoginAtivity(View view) {
@@ -77,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements
     private boolean temPermissoes(Context context, String[] permissoes) {
         if (context != null && permissoes != null) {
             for (String permissao : permissoes) {
-                if(ActivityCompat.checkSelfPermission(context, permissao) !=
+                if (ActivityCompat.checkSelfPermission(context, permissao) !=
                         PackageManager.PERMISSION_GRANTED) {
                     return false;
                 }
@@ -89,10 +112,148 @@ public class MainActivity extends AppCompatActivity implements
     private void verificarPermissoes() {
         if (!temPermissoes(this, permissoes)) {
             ActivityCompat.requestPermissions(this, permissoes, CODIGO_PERMISSOES);
-        }
-        else {
+        } else {
             buildGoogleApiClient();
         }
+    }
+
+    private void receberLocalizacao() {
+        if (!temPermissoes(this, permissoes)) {
+            ActivityCompat.requestPermissions(this, permissoes, CODIGO_PERMISSOES);
+        }
+        try {
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            localizacaoAtual = location;
+                            Log.i("Localização", "Localização atual: " + localizacaoAtual);
+                        }
+                    });
+        } catch (SecurityException e) {
+            Log.i("Localização", "SecurityException: " + e);
+        }
+    }
+
+    private void criarLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    private void verificarConfiguracoesAtuaisDeLocalizacao() {
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+        SettingsClient client = LocationServices.getSettingsClient(this);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+
+        Log.i("Localização", "Configuração de localização: " + task);
+    }
+
+    private void atualizarLocalizacao() {
+        criarLocationRequest();
+        callbackDeAtualizacaoDaLocalizacao();
+
+        try {
+            mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                    mLocationCallback,
+                    null);
+        } catch (SecurityException e) {
+            Log.i("Localização", "Security Exception: " + e);
+        }
+    }
+
+    private void callbackDeAtualizacaoDaLocalizacao() {
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    Log.i("Localização", "Localização nula");
+                }
+                for (Location location : locationResult.getLocations()) {
+                    localizacaoAtual = location;
+                    Log.i("Localização", "Localização atual: " + localizacaoAtual);
+                }
+            }
+        };
+    }
+
+    /**
+     * Método para criar a geofence.
+     * Setamos a latitude, longitude e o raio.
+     * Configuramos também os métodos de transição,
+     * assim determinamos que a interação do aplicativo
+     * com o geofence acontecerá tanto na entrada
+     * quanto na saída.
+     **/
+    private Geofence criarGeofences() {
+        geofence = new Geofence.Builder()
+                .setRequestId("dcomp")
+                .setCircularRegion(
+                        coordenadas[0],
+                        coordenadas[1],
+                        GEOFENCE_RADIUS_IN_METERS
+                )
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                        Geofence.GEOFENCE_TRANSITION_EXIT)
+                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                .build();
+
+        Log.i("Geofence", "Geofence criado");
+
+        return geofence;
+    }
+
+    private void adicionarGeofences() {
+        Log.i("Geofence", "Método adicionarGeofences()");
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
+                .addOnSuccessListener(this, new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.i("Geofence", "Geofence adicionado com sucesso");
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.i("Geofence", "Falha ao adicionar geofence" + e);
+                    }
+                });
+    }
+
+    private GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofence(criarGeofences());
+
+        return builder.build();
+    }
+
+    /**
+     * Este é o PendingIntent que faz a comunicação com a classe IntentService
+     **/
+    private PendingIntent getGeofencePendingIntent() {
+        // Se o PendingIntent já existe, reuse-o
+        if (mGeofencePendingIntent != null) {
+            return mGeofencePendingIntent;
+        }
+
+        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
+        mGeofencePendingIntent = PendingIntent.getService(this, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        return mGeofencePendingIntent;
     }
 
     /**
@@ -101,117 +262,26 @@ public class MainActivity extends AppCompatActivity implements
     private synchronized void buildGoogleApiClient() {
         if(googleClient == null) {
             googleClient = new GoogleApiClient.Builder(this)
-
-                    .addApi(Nearby.MESSAGES_API, new MessagesOptions.Builder()
-                            .setPermissions(NearbyPermissions.BLE).build())
+                    .addApi(LocationServices.API)
                     .addConnectionCallbacks(this)
-                    .enableAutoManage(this,this).build();
+                    .addOnConnectionFailedListener(this)
+                    .build();
 
             googleClient.connect();
         }
     }
 
-    /**
-     * Retorna um intent a partir da classe Service. No caso, MensagensService
-     * @return
-     */
-    @NonNull
-    private Intent getBackgroundSubscribeServiceIntent() {
-        return new Intent(this, MensagensService.class);
-    }
-
-    private PendingIntent getPendingIntent() {
-        return PendingIntent.getService(this, 0,
-                getBackgroundSubscribeServiceIntent(), PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    /**
-     * Método chamado a partir do pressionamento do botão inscrever-se
-     * @param view
-     */
-    public void inscrever(View view) {
-        Log.i("", "Botão inscrição pressionado");
-        verificarPermissoes();
-        subscribe();
-    }
-
-    public void subscribe() {
-        /* SubscribeOptins permite filtrar quais mensagens serão utilizadas pelo app.
-         * Neste caso, configurei para apenas BLE (Bluetooth Low Energy), com namespace e
-         * tipo definidos no arquivo strings.xml
-         */
-        SubscribeOptions options = new SubscribeOptions.Builder()
-                .setStrategy(Strategy.BLE_ONLY)
-                .setFilter(new MessageFilter.Builder()
-                        .includeNamespacedType(getString(R.string.Namespace),
-                                getString(R.string.Type))
-                        .build()).build();
-
-        Nearby.Messages.subscribe(googleClient, getPendingIntent(), options)
-                .setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(@NonNull Status status) {
-                        if(status.isSuccess()) {
-                            Log.i(TAG, "Inscrito com sucesso");
-                            startService(getBackgroundSubscribeServiceIntent());
-                            inscrito = true;
-                            mensagem.setText("Inscrito");
-                        } else {
-                            Log.e(TAG, "Falha na operação. Erro: " +
-                                    NearbyMessagesStatusCodes
-                                            .getStatusCodeString(status.getStatusCode()));
-                        }
-                    }
-                });
-    }
-
-    /**
-     * Método chamado a partir do pressionamento do botão de transmissão
-     * @param view
-     */
-    public void transmitir(View view) {
-        Log.i("", "Botão transmissão pressionado");
-        verificarPermissoes();
-        String textoMensagem = "Olá Mundo!";
-        publicar(textoMensagem);
-    }
-
-    // TODO: Certificar-se de que a publicação está sendo feita com o mesmo nome e namespace da inscrição
-    private void publicar(String message) {
-        PublishOptions options = new PublishOptions.Builder()
-                .setStrategy(BLE_ONLY)
-                .setCallback(new PublishCallback() {
-                    @Override
-                    public void onExpired() {
-                        super.onExpired();
-                        Log.i(TAG, "No longer publishing");
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-
-                            }
-                        });
-                    }
-                }).build();
-        Message mensagemAtiva = new Message(message.getBytes());
-        Nearby.getMessagesClient(this).publish(mensagemAtiva);
-        // Nearby.Messages.publish(googleClient, mensagemAtiva, options);
-
-        Log.i("", "Transmitindo " + message);
-        mensagem.setText("Transmitindo");
+    @Override
+    protected void onResume() {
+        super.onResume();
+        atualizarLocalizacao();
     }
 
     @Override
-    protected void onStop() {
-        // Nearby.getMessagesClient(this).unpublish(mMessage);
-        // Nearby.getMessagesClient(this).unsubscribe(mMessageListener);
-        super.onStop();
-    }
+    protected void onStop() { super.onStop(); }
 
     @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        // subscribe();
-    }
+    public void onConnected(@Nullable Bundle bundle) {}
 
     @Override
     public void onConnectionSuspended(int i) {}

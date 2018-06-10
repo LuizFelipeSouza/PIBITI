@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="nevicelabs.pibiti">
 
     <!-- Solicita permissões para utlizar o bluetooth -->
@@ -25,11 +24,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <service android:name=".MensagensService" />
+        <service android:name="nevicelabs.pibiti.GeofenceTransitionsIntentService" />
 
         <meta-data
-            android:name="com.google.android.nearby.messages.API_KEY"
-            android:value="AIzaSyCPjCRo1mxecIYiwqWbuSEjkhrsvQ2mmrk" />
+                android:name="com.google.android.nearby.messages.API_KEY"
+                android:value="AIzaSyCPjCRo1mxecIYiwqWbuSEjkhrsvQ2mmrk"/>
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -56,7 +55,5 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
-
     </application>
-
 </manifest>
