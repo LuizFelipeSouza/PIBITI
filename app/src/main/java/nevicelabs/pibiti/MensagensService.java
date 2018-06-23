@@ -29,7 +29,7 @@ public class MensagensService extends IntentService {
     private static final int MESSAGES_NOTIFICATION_ID = 1;
     private Date horarioIncial;
     private Date horarioFinal;
-    Usuario usuario = LoginActivity.getUsuario();
+    // Usuario usuario = LoginActivity.getUsuario();
 
     // Construtuor sem argumentos apra a definição do Service em AndroidManifest.xml
     public MensagensService() {

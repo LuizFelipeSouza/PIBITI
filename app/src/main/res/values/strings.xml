@@ -9,8 +9,12 @@
     <string name="Namespace">beacon-project-198921</string>
     <string name="Type">JD</string>
 
-    <!-- ID do Cliente OAuth 2.0 -->
+    <!-- Servidor backend do Google OAuth 2.0 -->
+    <string name="backend_OAuth">325900729453-1hs7as7ap9mqjq25tl2n94n7qnpqk2vl.apps.googleusercontent.com</string>
     <string name="idClienteOAuth">325900729453-mt0j1llcf06gmvo73ekmpog3ls72i9vc.apps.googleusercontent.com</string>
+
+    <!-- Chave da Nearby API -->
+    <string name="NearbyAPI">AIzaSyCPjCRo1mxecIYiwqWbuSEjkhrsvQ2mmrk</string>
 
     <string name="title_activity_eddy_stone_modify">EddyStoneModifyActivity</string>
 

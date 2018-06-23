@@ -1,88 +1,64 @@
 package nevicelabs.pibiti;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.app.LoaderManager.LoaderCallbacks;
 
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.AsyncTask;
-
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
 import android.widget.*;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
-import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static android.Manifest.permission.READ_CONTACTS;
 
 /**
  * Tela de login pelo FirebaseUI
  */
 public class LoginActivity extends AppCompatActivity {
 
-    private static final int RC_SIGN_IN = 123;
     private GoogleSignInClient googleSignInClient;
-    private FirebaseAuth firebaseAuth;
-    private static Usuario usuario;
-    private UsuarioDAO dao = new UsuarioDAO();
+    private static final int RC_SIGN_IN = 123;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private FirebaseUser usuarioFirebase;
+    private Usuario usuario;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Google Sign-In padrão requisitando apenas email.
-        // O token é encontrado nas credenciais do projeto no Google Console e é utilizado pelo Firebase
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(
-                GoogleSignInOptions.DEFAULT_SIGN_IN)
+        // Configurar Google Sign In
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.idClienteOAuth))
                 .requestEmail()
                 .build();
 
-        // Criamos o GoogleSignInClient
         googleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        /* Verificamos se o usuário já está logado. Se o usuário não estiver logado, account será null
+        // Verificamos se o usuário já está logado
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        token = account.getIdToken(); */
 
-        // Autenticação do Firebase
-        firebaseAuth = FirebaseAuth.getInstance();
+        if (account != null) {
+            iniciarActivity();
+        }
+
 
         // Definido tamanho para o botão de Login
         SignInButton signInButton = findViewById(R.id.sign_in_button);
         signInButton.setSize(SignInButton.SIZE_STANDARD);
 
-        // Não sei pra que serve
+        // Lista dos provedores de autenticação
         List<AuthUI.IdpConfig> providers = Arrays.asList(
                 new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
                 new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build());
@@ -93,14 +69,43 @@ public class LoginActivity extends AppCompatActivity {
                         .setAvailableProviders(providers)
                         .build(),
                 RC_SIGN_IN);
+
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser usuarioAtual = mAuth.getCurrentUser();
+        // Atualiza a tela com o usuário atual
+        atualizarUI(usuarioAtual);
+
+        // Listener para monitorar as mudanças de estado de login
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                usuarioFirebase = firebaseAuth.getCurrentUser();
+
+                if (usuarioFirebase != null) {
+                    Log.d("Firebase Auth", "onAuthStateChanged: O usuário fez login: "
+                            + usuarioFirebase.getUid() +'\n' + usuarioFirebase.getDisplayName());
+
+                    // getInformacoesDoUsuario(usuarioFirebase);
+
+                } else {
+                    Log.d("Firebase Auth", "onAuthStateChanged: O usuário fez logoof");
+                }
+            }
+        };
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
 
-        // Verificamos se o usuário está conectado pelo Firebase
-        FirebaseUser usuarioAtual = firebaseAuth.getCurrentUser();
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 
     @Override
@@ -108,19 +113,25 @@ public class LoginActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                Log.i("", "Login da Google executado. Autenticando com Firebase");
-                // Caso o login da Google tenha sido realizado com sucesso...
-                GoogleSignInAccount acc = task.getResult(ApiException.class);
-                // ... autenticar com o Firebase
-                autenticarFirebaseComGoogle(acc);
-                Log.i("","Método de autenticação com o Firebase executado!");
-            } catch (ApiException e) {
-                Log.i("", "Api Exception");
-                e.printStackTrace();
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+
+            if (resultCode == RESULT_OK) {
+                Log.i("Google Sign In", "Login realizado com sucesso!");
+                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                try {
+                    GoogleSignInAccount acc = task.getResult(ApiException.class);
+                    autenticarFirebaseComGoogle(acc);
+                    getUsuarioFirebase();
+                } catch (ApiException e) {
+                    Log.w("Google Sign In", "Falha no Google Sign In: ", e);
+                }
             }
         }
+    }
+
+    private void googleSignIn() {
+        Intent signInIntent = googleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     /**
@@ -129,64 +140,121 @@ public class LoginActivity extends AppCompatActivity {
      * @param account
      */
     private void autenticarFirebaseComGoogle(GoogleSignInAccount account) {
-        Log.i("", "Autenticando firebase com Google" + account.getId());
+        Log.d("", "Autenticando firebase com Google" + account.getId());
 
-        AuthCredential credencial = GoogleAuthProvider.getCredential(account.getIdToken(), null);
-        firebaseAuth.signInWithCredential(credencial)
+        AuthCredential credencial = GoogleAuthProvider.getCredential((account.getIdToken()), null);
+        mAuth.signInWithCredential(credencial)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d("", "Sucesso ao fazer login");
-                            FirebaseUser user = firebaseAuth.getCurrentUser();
-
-                            Log.i("", "Settando informações do usuário");
-                            usuario.setNome(user.getDisplayName());
-                            usuario.setEmail(user.getEmail());
-
-                            Log.i("", "Enviando objeto Usuario ao DAO");
-                            dao.adicionar(usuario);
-
-                            // updateUI(user);
+                            Log.d("Firebase Authentication", "signInWithCredential: success");
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            atualizarUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
-                            Log.w("", "signInWithCredential:failure", task.getException());
-                            Toast.makeText(LoginActivity.this, "Login Falhou!", Toast.LENGTH_SHORT).show();
-                            // Snackbar.make(findViewById(R.id.main_layout), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
-                            // updateUI(null);
+                            Log.w("Firebase Authentication", "signInWithCredential:failure", task.getException());
+                            // atualizarUI(null);
+
                         }
                     }
                 });
     }
 
+    private void handleSignInResult(Task<GoogleSignInAccount> completedTask){
+        try {
+            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+        } catch(ApiException e) {
+            Log.w("Google Sign In", "Falha no Google Sign In; codigo: " + e.getStatusCode());
+            // atualizarUI(null);
+        }
+    }
+
     public void sair(View view) {
-        // SignOut do Firebase
-        firebaseAuth.signOut();
-        Log.i("", "Saindo do Firebase");
-
-        // SignOut do Google
-        googleSignInClient.signOut().addOnCompleteListener(this,
-                new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        Log.i("", "Saindo do Google Sign In");
-                        updateUI(null);
-                    }
-                });
     }
 
+    /**
+     * Utilizado na criação desta Activity.
+     * Este método é chamado para direcionar o usuário para a MainActivity depois de autenticado
+     */
+    public void iniciarActivity() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    /**
+     * Método utilizado pelo botão de Sign In. Deve er corrigido
+     * // TODO: Substituir o onClick do botão Sign In
+     * @param view
+     */
     public void iniciarActivity(View view) {
-        Intent signInIntent = googleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 
-    private void updateUI(GoogleSignInAccount account) {
-        // Faz alguma coisa
+    /**
+     * Atualiza a interface com informações sobre o usuario
+     * @param account
+     */
+    private void atualizarUI(GoogleSignInAccount account) {
+        /*
+        TextView nomeUsuario = new TextView(this);
+        String nome = account.getDisplayName();
+        nomeUsuario.setText(nome);
+        */
     }
 
-    public static Usuario getUsuario() {
-        return usuario;
+    /**
+     * Atualiza a interface com informações sobre o usuário
+     * @param firebaseUser
+     */
+    private void atualizarUI(FirebaseUser firebaseUser) {
+        /*
+        TextView nomeUsuario = findViewById(R.id.nomeUsuarioTextView);
+
+        String nome = firebaseUser.getDisplayName();
+        Log.i("Atualizar UI", "Usuário: " + nome);
+        nomeUsuario.setText(nome);
+        */
+    }
+
+    /**
+     * Este método seria chamado para montar o objeto Usuario que será persistido no banco
+     * @param usuarioFirebase
+     */
+    public void mostrarInformacoesDoUsuario(FirebaseUser usuarioFirebase) {
+        Log.i("Firebase Auth", usuarioFirebase.getDisplayName());
+        Log.i("Firebase Auth", usuarioFirebase.getEmail());
+        Log.i("Firebase Auth", usuarioFirebase.getPhoneNumber());
+    }
+
+    /**
+     * Verifica se o usuário fez login pelo Firebase
+     * @return FirebaseUser, caso autenticado
+     * @return null, caso contrário
+     */
+    public FirebaseUser getUsuarioFirebase() {
+        // Verificamos se há um usuário autenticado
+        // FirebaseUser usuarioFirebase = mAuth.getCurrentUser();
+
+        if (usuarioFirebase != null) {
+            Log.d("Firebase Auth", "Usuário: " + usuarioFirebase.getDisplayName());
+            return usuarioFirebase;
+        } else {
+            return null;
+        }
+    }
+
+    public Usuario getUsuarioGoogle() {
+        GoogleSignInAccount googleAccount = GoogleSignIn.getLastSignedInAccount(this);
+
+        if (googleAccount != null) {
+            usuario.setNome(googleAccount.getDisplayName());
+            usuario.setEmail(googleAccount.getEmail());
+
+            return usuario;
+        } else {
+            return null;
+        }
     }
 }
-
