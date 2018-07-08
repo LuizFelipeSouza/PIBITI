@@ -53,7 +53,6 @@ public class LoginActivity extends AppCompatActivity {
             iniciarActivity();
         }
 
-
         // Definido tamanho para o botão de Login
         SignInButton signInButton = findViewById(R.id.sign_in_button);
         signInButton.setSize(SignInButton.SIZE_STANDARD);
@@ -79,16 +78,17 @@ public class LoginActivity extends AppCompatActivity {
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                usuarioFirebase = firebaseAuth.getCurrentUser();
+                FirebaseUser usuarioFirebaseAtual = firebaseAuth.getCurrentUser();
+                setUsuarioFirebase(usuarioFirebaseAtual);
 
-                if (usuarioFirebase != null) {
+                if (usuarioFirebaseAtual != null) {
                     Log.d("Firebase Auth", "onAuthStateChanged: O usuário fez login: "
-                            + usuarioFirebase.getUid() +'\n' + usuarioFirebase.getDisplayName());
+                            + usuarioFirebaseAtual.getUid() +'\n' + usuarioFirebaseAtual.getDisplayName());
 
                     // getInformacoesDoUsuario(usuarioFirebase);
 
                 } else {
-                    Log.d("Firebase Auth", "onAuthStateChanged: O usuário fez logoof");
+                    Log.d("Firebase Auth", "onAuthStateChanged: O usuário fez logout");
                 }
             }
         };
@@ -116,10 +116,10 @@ public class LoginActivity extends AppCompatActivity {
             IdpResponse response = IdpResponse.fromResultIntent(data);
 
             if (resultCode == RESULT_OK) {
-                Log.i("Google Sign In", "Login realizado com sucesso!");
                 Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                 try {
                     GoogleSignInAccount acc = task.getResult(ApiException.class);
+                    // Log.i("Google Sign In", "Login realizado com sucesso!");
                     autenticarFirebaseComGoogle(acc);
                     getUsuarioFirebase();
                 } catch (ApiException e) {
@@ -218,14 +218,8 @@ public class LoginActivity extends AppCompatActivity {
         */
     }
 
-    /**
-     * Este método seria chamado para montar o objeto Usuario que será persistido no banco
-     * @param usuarioFirebase
-     */
-    public void mostrarInformacoesDoUsuario(FirebaseUser usuarioFirebase) {
-        Log.i("Firebase Auth", usuarioFirebase.getDisplayName());
-        Log.i("Firebase Auth", usuarioFirebase.getEmail());
-        Log.i("Firebase Auth", usuarioFirebase.getPhoneNumber());
+    private void setUsuarioFirebase(FirebaseUser user) {
+        this.usuarioFirebase = user;
     }
 
     /**
@@ -235,11 +229,13 @@ public class LoginActivity extends AppCompatActivity {
      */
     public FirebaseUser getUsuarioFirebase() {
         // Verificamos se há um usuário autenticado
-        // FirebaseUser usuarioFirebase = mAuth.getCurrentUser();
+        Log.d("Firebase Auth", "getUsuarioFirebase()");
+        FirebaseUser firebase = mAuth.getCurrentUser();
+        Log.i("Firebase Auth", "Usuário Firebase: " + firebase);
 
-        if (usuarioFirebase != null) {
+        if (this.usuarioFirebase != null) {
             Log.d("Firebase Auth", "Usuário: " + usuarioFirebase.getDisplayName());
-            return usuarioFirebase;
+            return this.usuarioFirebase;
         } else {
             return null;
         }

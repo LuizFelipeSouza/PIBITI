@@ -50,8 +50,8 @@ public class MainActivity extends AppCompatActivity implements
     private GeofencingClient mGeofencingClient;
     private Geofence geofence;
     private PendingIntent mGeofencePendingIntent;
-    // private double[] coordenadas = {-10.922550, -37.103778};
-    private double[] coordenadas = {-11.150023,-37.616538};
+    private double[] coordenadas = {-10.922550, -37.103778};
+    // private double[] coordenadas = {-11.150023,-37.616538};
     // Cliente para as APIs Google
     private GoogleApiClient googleClient;
     // Lista de permissões
@@ -76,12 +76,12 @@ public class MainActivity extends AppCompatActivity implements
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 if (locationResult == null) {
-                    Log.i("Localização", "Localização nula");
+                    // Log.i("Localização", "Localização nula");
                     return;
                 }
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
-                    Log.i("Localização", "Localização: " + location);
+                    // Log.i("Localização", "Localização: " + location);
                 }
             }
         };
@@ -126,11 +126,11 @@ public class MainActivity extends AppCompatActivity implements
                         @Override
                         public void onSuccess(Location location) {
                             localizacaoAtual = location;
-                            Log.i("Localização", "Localização atual: " + localizacaoAtual);
+                            // Log.i("Localização", "Localização atual: " + localizacaoAtual);
                         }
                     });
         } catch (SecurityException e) {
-            Log.i("Localização", "SecurityException: " + e);
+            Log.w("Localização", "SecurityException: " + e);
         }
     }
 
@@ -146,8 +146,6 @@ public class MainActivity extends AppCompatActivity implements
                 .addLocationRequest(mLocationRequest);
         SettingsClient client = LocationServices.getSettingsClient(this);
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
-
-        Log.i("Localização", "Configuração de localização: " + task);
     }
 
     private void atualizarLocalizacao() {
@@ -159,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements
                     mLocationCallback,
                     null);
         } catch (SecurityException e) {
-            Log.i("Localização", "Security Exception: " + e);
+            Log.w("Localização", "Security Exception: " + e);
         }
     }
 
@@ -168,11 +166,11 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 if (locationResult == null) {
-                    Log.i("Localização", "Localização nula");
+                    Log.w("Localização", "Localização nula");
                 }
                 for (Location location : locationResult.getLocations()) {
                     localizacaoAtual = location;
-                    Log.i("Localização", "Localização atual: " + localizacaoAtual);
+                    // Log.i("Localização", "Localização atual: " + localizacaoAtual);
                 }
             }
         };
@@ -220,13 +218,13 @@ public class MainActivity extends AppCompatActivity implements
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Log.i("Geofence", "Geofence adicionado com sucesso");
+                        // Log.i("Geofence", "Geofence adicionado com sucesso");
                     }
                 })
                 .addOnFailureListener(this, new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.i("Geofence", "Falha ao adicionar geofence" + e);
+                        Log.w("Geofence", "Falha ao adicionar geofence" + e);
                     }
                 });
     }
