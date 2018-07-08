@@ -48,11 +48,10 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        Log.i("Intent Service", "onHandleIntent");
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
 
         if(geofencingEvent.hasError()) {
-            Log.i("Intent Service", "Erro Geofencing Event");
+            Log.w("Intent Service", "Erro Geofencing Event");
         } else {
             int tipoDeTransicao = geofencingEvent.getGeofenceTransition();
 
@@ -62,15 +61,15 @@ public class GeofenceTransitionsIntentService extends IntentService {
                 mensagem = new Mensagem("Bem vindo ao DCOMP", "Você deu entrada às " + horarioEntrada);
                 atualizarNotificacao(mensagem);
                 horarioEntrada = GregorianCalendar.getInstance().getTime();
-                Log.i("Intent Service", "Horário: " + horarioEntrada);
+                // Log.i("Intent Service", "Horário: " + horarioEntrada);
                 persistirNoFirebase(getDadosDoUsuario());
             }
             // Também registre o horário quando o usuário sair do local
             else if (tipoDeTransicao == Geofence.GEOFENCE_TRANSITION_EXIT) {
-                Log.i("Intent Service", "Saída no geofence");
+                Log.d("Intent Service", "Saída no geofence");
                 horarioSaida = GregorianCalendar.getInstance().getTime();
                 mensagem = new Mensagem("Até logo!", "Você saiu do DCOMP às " + horarioSaida);
-                Log.i("Intent Service", "Horário final: " + horarioSaida);
+                // Log.i("Intent Service", "Horário final: " + horarioSaida);
 
                 horarioFinal = horarioSaida.getTime() - horarioEntrada.getTime();
                 Log.i("", "Horário final: " + horarioFinal);
@@ -109,9 +108,9 @@ public class GeofenceTransitionsIntentService extends IntentService {
         FirebaseUser usuarioFirebase = login.getUsuarioFirebase();
 
         if (usuarioFirebase != null) {
-            Log.i("Firebase Auth", "Montando usuário");
-            Log.i("Usuario Firebase", usuarioFirebase.getDisplayName());
-            Log.i("Usuario Firebase", usuarioFirebase.getEmail());
+            // Log.i("Firebase Auth", "Montando usuário");
+            // Log.i("Usuario Firebase", usuarioFirebase.getDisplayName());
+            // Log.i("Usuario Firebase", usuarioFirebase.getEmail());
             Usuario usuario = new Usuario();
             usuario.setNome(usuarioFirebase.getDisplayName());
             usuario.setEmail(usuarioFirebase.getEmail());
@@ -133,20 +132,20 @@ public class GeofenceTransitionsIntentService extends IntentService {
         FirebaseUser usuarioFirebase = login.getUsuarioFirebase();
 
         if (usuarioFirebase != null) {
-            Log.i("Firebase Database", "Persistindo usuário");
+            Log.d("Firebase Database", "Persistindo usuário");
             UsuarioDAO dao = new UsuarioDAO();
 
             usuario.setNome(usuarioFirebase.getDisplayName());
             usuario.setEmail(usuarioFirebase.getEmail());
             usuario.setNumDeHoras(usuario.getNumDeHoras());
-            Log.i("Firebase Database", "Nome: " + usuario.getNome());
-            Log.i("Firebase Database", "E-mail: " + usuario.getEmail());
-            Log.i("Firebase Database", "Horas: " + usuario.getNumDeHoras());
+            // Log.i("Firebase Database", "Nome: " + usuario.getNome());
+            // Log.i("Firebase Database", "E-mail: " + usuario.getEmail());
+            // Log.i("Firebase Database", "Horas: " + usuario.getNumDeHoras());
 
             dao.adicionar(usuario);
             Log.i("Firebase Database", "Usuario persistido");
         } else {
-            Log.i("Firebase Database", "Usuário nulo!");
+            Log.d("Firebase Database", "Usuário nulo!");
         }
     }
 }
