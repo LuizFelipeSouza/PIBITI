@@ -14,6 +14,7 @@ import com.google.android.gms.location.GeofencingEvent;
 import com.google.android.gms.nearby.messages.Message;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -26,6 +27,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
     private Date horarioEntrada;
     private Date horarioSaida;
     private long horarioFinal;
+    private SimpleDateFormat formatoData = new SimpleDateFormat("hh:mm:ss");
     private static final int NOTIFICATION_ID = 1;
     private Mensagem mensagem;
 
@@ -58,10 +60,11 @@ public class GeofenceTransitionsIntentService extends IntentService {
             // Quando o usuário entrar no local, registre o horário
             if(tipoDeTransicao == Geofence.GEOFENCE_TRANSITION_ENTER) {
                 Log.i("Intent Service", "Entrada no geofence");
-                mensagem = new Mensagem("Bem vindo ao DCOMP", "Você deu entrada às " + horarioEntrada);
-                atualizarNotificacao(mensagem);
                 horarioEntrada = GregorianCalendar.getInstance().getTime();
+                mensagem = new Mensagem("Bem vindo ao DCOMP", "Você deu entrada às "
+                        + formatoData.format(horarioEntrada));
                 // Log.i("Intent Service", "Horário: " + horarioEntrada);
+                atualizarNotificacao(mensagem);
                 persistirNoFirebase(getDadosDoUsuario());
             }
             // Também registre o horário quando o usuário sair do local
@@ -104,16 +107,14 @@ public class GeofenceTransitionsIntentService extends IntentService {
     private Usuario getDadosDoUsuario() {
         Log.d("Firebase Auth", "getDadosdoUsuario()");
 
-        LoginActivity login = new LoginActivity();
-        FirebaseUser usuarioFirebase = login.getUsuarioFirebase();
+        FirebaseUser usuarioFirebase = LoginActivity.getUsuarioFirebase();
 
         if (usuarioFirebase != null) {
-            // Log.i("Firebase Auth", "Montando usuário");
-            // Log.i("Usuario Firebase", usuarioFirebase.getDisplayName());
-            // Log.i("Usuario Firebase", usuarioFirebase.getEmail());
+            Log.i("Firebase Auth", "Montando usuário: " + usuarioFirebase.getDisplayName());
             Usuario usuario = new Usuario();
             usuario.setNome(usuarioFirebase.getDisplayName());
             usuario.setEmail(usuarioFirebase.getEmail());
+            usuario.setHorarioEntrada(horarioEntrada);
 
             return usuario;
         } else {
@@ -131,19 +132,25 @@ public class GeofenceTransitionsIntentService extends IntentService {
         LoginActivity login = new LoginActivity();
         FirebaseUser usuarioFirebase = login.getUsuarioFirebase();
 
+        // Verificamos se o usuario não é nulo para prosseguirmos com a operação
         if (usuarioFirebase != null) {
             Log.d("Firebase Database", "Persistindo usuário");
             UsuarioDAO dao = new UsuarioDAO();
 
-            usuario.setNome(usuarioFirebase.getDisplayName());
-            usuario.setEmail(usuarioFirebase.getEmail());
-            usuario.setNumDeHoras(usuario.getNumDeHoras());
-            // Log.i("Firebase Database", "Nome: " + usuario.getNome());
-            // Log.i("Firebase Database", "E-mail: " + usuario.getEmail());
-            // Log.i("Firebase Database", "Horas: " + usuario.getNumDeHoras());
+            /* Verificamos se o usuário já existe. Caso sim, apenas a tualizamos o hrário de saída
+             Do contrário, criamos um usuário com nome, e-mail e horário de entrada. */
+            if(dao.usuarioExiste(usuario)) {
+                dao.atualizarHoras(usuario, horarioEntrada);
+            } else {
+                // usuario.setNome(usuarioFirebase.getDisplayName());
+                // usuario.setEmail(usuarioFirebase.getEmail());
+                // Log.i("Firebase Database", "Nome: " + usuario.getNome());
+                // Log.i("Firebase Database", "E-mail: " + usuario.getEmail());
+                // Log.i("Firebase Database", "Horas: " + usuario.getNumDeHoras());
 
-            dao.adicionar(usuario);
-            Log.i("Firebase Database", "Usuario persistido");
+                dao.adicionar(usuario);
+                Log.i("Firebase Database", "Usuario adicionado");
+            }
         } else {
             Log.d("Firebase Database", "Usuário nulo!");
         }

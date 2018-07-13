@@ -26,25 +26,22 @@
 
         <service android:name="nevicelabs.pibiti.GeofenceTransitionsIntentService" />
 
-        <meta-data
-                android:name="com.google.android.nearby.messages.API_KEY"
-                android:value="@string/NearbyAPI"/>
-
         <activity android:name=".MainActivity">
             <!--
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            -->
+
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".LoginActivity" />
+             -->
         </activity>
 
         <activity
                 android:name=".LoginActivity"
-                android:label="@string/title_activity_login"
+                android:label="@string/app_name"
                 android:parentActivityName=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

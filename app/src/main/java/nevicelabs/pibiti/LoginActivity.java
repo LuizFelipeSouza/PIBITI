@@ -30,7 +30,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 123;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private FirebaseUser usuarioFirebase;
+    private static FirebaseUser usuarioFirebase;
     private Usuario usuario;
 
     @Override
@@ -79,14 +79,12 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser usuarioFirebaseAtual = firebaseAuth.getCurrentUser();
-                setUsuarioFirebase(usuarioFirebaseAtual);
 
                 if (usuarioFirebaseAtual != null) {
                     Log.d("Firebase Auth", "onAuthStateChanged: O usuário fez login: "
                             + usuarioFirebaseAtual.getUid() +'\n' + usuarioFirebaseAtual.getDisplayName());
-
+                    setUsuarioFirebase(usuarioFirebaseAtual);
                     // getInformacoesDoUsuario(usuarioFirebase);
-
                 } else {
                     Log.d("Firebase Auth", "onAuthStateChanged: O usuário fez logout");
                 }
@@ -119,7 +117,7 @@ public class LoginActivity extends AppCompatActivity {
                 Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                 try {
                     GoogleSignInAccount acc = task.getResult(ApiException.class);
-                    // Log.i("Google Sign In", "Login realizado com sucesso!");
+                    Log.i("Google Sign In", "Login realizado com sucesso!");
                     autenticarFirebaseComGoogle(acc);
                     getUsuarioFirebase();
                 } catch (ApiException e) {
@@ -227,16 +225,18 @@ public class LoginActivity extends AppCompatActivity {
      * @return FirebaseUser, caso autenticado
      * @return null, caso contrário
      */
-    public FirebaseUser getUsuarioFirebase() {
+    public static FirebaseUser getUsuarioFirebase() {
         // Verificamos se há um usuário autenticado
         Log.d("Firebase Auth", "getUsuarioFirebase()");
-        FirebaseUser firebase = mAuth.getCurrentUser();
-        Log.i("Firebase Auth", "Usuário Firebase: " + firebase);
+        // FirebaseUser firebase = mAuth.getCurrentUser();
+        // Log.i("Firebase Auth", "Usuário Firebase: " + firebase);
+        // Log.i("Firebase Auth", "Usuário Firebase: " + this.usuarioFirebase.getDisplayName());
 
-        if (this.usuarioFirebase != null) {
+        if (usuarioFirebase != null) {
             Log.d("Firebase Auth", "Usuário: " + usuarioFirebase.getDisplayName());
-            return this.usuarioFirebase;
+            return usuarioFirebase;
         } else {
+            Log.d("Firebase Auth", "getUsuarioFirebase() usuário nulo!");
             return null;
         }
     }
