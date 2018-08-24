@@ -3,8 +3,10 @@ package nevicelabs.pibiti;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -16,8 +18,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -29,6 +33,8 @@ import com.google.android.gms.nearby.messages.*;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseUser;
+import org.w3c.dom.Text;
 
 import static android.content.ContentValues.TAG;
 import static com.google.android.gms.nearby.messages.Strategy.BLE_ONLY;
@@ -50,17 +56,40 @@ public class MainActivity extends AppCompatActivity implements
     private GeofencingClient mGeofencingClient;
     private Geofence geofence;
     private PendingIntent mGeofencePendingIntent;
-    private double[] coordenadas = {-10.922550, -37.103778};
+    // Coordenadas do DCOMP
+    private double[] coordenadas = {-10.922625,-37.103885};
+    // Coordenadas do nevicelab
     // private double[] coordenadas = {-11.150023,-37.616538};
+    // Coordenadas do nevicelab II
+    // private double[] coordenadas ={-10.927088,-37.105261};
     // Cliente para as APIs Google
     private GoogleApiClient googleClient;
     // Lista de permissões
     private String[] permissoes = {Manifest.permission.ACCESS_FINE_LOCATION};
+    // TextViews
+    private ImageView fotoDePerfil;
+    private TextView nomeUsuarioTextView;
+    private TextView horarioEntrada;
+    private TextView horarioSaida;
+    private TextView totalHoras;
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            atualizarUI(intent);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Inicializando as TextViews
+        fotoDePerfil = findViewById(R.id.fotoDePerfil);
+        nomeUsuarioTextView = findViewById(R.id.nomeUsuarioTextView);
+        horarioEntrada = findViewById(R.id.setHorarioEntradaTextView);
+        horarioSaida = findViewById(R.id.setHorarioSaidaTextView);
+        totalHoras = findViewById(R.id.setHorarioTotalTextView);
 
         // Verificamos se as permissões necessárias foram concedidas e as requisitamos, caso não
         verificarPermissoes();
@@ -204,7 +233,8 @@ public class MainActivity extends AppCompatActivity implements
 
     private void adicionarGeofences() {
         Log.i("Geofence", "Método adicionarGeofences()");
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -268,10 +298,22 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    public void atualizarUI(Intent intent) {
+        String imagemUrl = intent.getStringExtra("imagemPerfil");
+        Glide.with(this).load(imagemUrl).into(fotoDePerfil);
+        nomeUsuarioTextView.setText(intent.getStringExtra("nome"));
+        horarioEntrada.setText(intent.getStringExtra("horarioEntrada"));
+        horarioSaida.setText(intent.getStringExtra("horarioSaida"));
+        // totalHoras.setText(intent.getStringExtra("totalHoras"));
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         atualizarLocalizacao();
+        registerReceiver(broadcastReceiver, new IntentFilter(
+                GeofenceTransitionsIntentService.BROADCAST_ACTION
+        ));
     }
 
     @Override

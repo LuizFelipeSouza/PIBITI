@@ -2,10 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="nevicelabs.pibiti">
 
-    <!-- Solicita permissões para utlizar o bluetooth -->
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-
     <!-- Permissão para acessar a localização -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 

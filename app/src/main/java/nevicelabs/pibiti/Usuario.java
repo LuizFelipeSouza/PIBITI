@@ -7,6 +7,8 @@ import java.util.Date;
  */
 public class Usuario {
 
+    private String id;
+    private String imagemPerfil;
     private String nome;
     private String email;
     private String matricula;
@@ -16,6 +18,22 @@ public class Usuario {
 
     // O construtor vazio é usado pelo Firebase Database
     public Usuario() {}
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getImagemPerfil() {
+        return this.imagemPerfil;
+    }
+
+    public void setImagemPerfil(String imagemPerfil) {
+        this.imagemPerfil = imagemPerfil;
+    }
 
     public String getNome() {
         return nome;

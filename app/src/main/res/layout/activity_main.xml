@@ -51,22 +51,22 @@
             android:text=""
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_alignTop="@+id/horarioEntradaTextView" />
+            android:layout_alignTop="@+id/horarioEntradaTextView" android:layout_alignParentEnd="true"
+            android:layout_marginEnd="50dp"/>
     <TextView
             android:id="@+id/setHorarioSaidaTextView"
             android:text=""
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_alignTop="@+id/horarioSaidaTextView" />
+            android:layout_alignTop="@+id/horarioSaidaTextView" android:layout_alignParentEnd="true"
+            android:layout_marginEnd="50dp"/>
     <TextView
             android:id="@+id/setHorarioTotalTextView"
             android:text=""
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_marginBottom="120dp"
+            android:layout_marginBottom="50dp"
             android:layout_centerHorizontal="true" />
 
     <!--

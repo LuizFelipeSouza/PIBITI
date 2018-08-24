@@ -14,7 +14,7 @@ public class UsuarioDAO {
     // Referência ao nó raiz do banco de dados. Permite a escrita e leitura de dados
     private FirebaseDatabase fireRef = FirebaseDatabase.getInstance();
     // Referência ao nó usuario do banco
-    private DatabaseReference usuarioRef = fireRef.getReference("usuario");
+    private DatabaseReference usuarioRef;
 
     /**
      * Construtor vazio, necessário para chamadas a Datasnapshot.getValue(Usuario.class)
@@ -27,6 +27,8 @@ public class UsuarioDAO {
     }
 
     public boolean usuarioExiste(Usuario usuario) {
+        String id = usuario.getId();
+        // Verifica se o id já existe no banco de dados
         return true;
     }
 
@@ -34,8 +36,9 @@ public class UsuarioDAO {
         // id = usuario.getMatricula();
         Log.i("Firebase", "Atualizando horas do usuário " + usuario.getNome()
                 + "\n" + "Horario: " + horario);
-        // usuarioRef.child("users").child(id).child("horas").setValue(horario);
-        usuarioRef.child("horario_saida").setValue(horario);
+        usuarioRef = fireRef.getReference(usuario.getId());
+        usuarioRef.child("nome").setValue(usuario.getNome());
+        usuarioRef.child("horario_entrada").setValue(horario);
         long horarioFinal = horario.getTime();
         usuarioRef.child("total_horas").setValue(horarioFinal);
     }

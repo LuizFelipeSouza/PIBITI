@@ -196,7 +196,7 @@ public class LoginActivity extends AppCompatActivity {
      */
     private void atualizarUI(GoogleSignInAccount account) {
         /*
-        TextView nomeUsuario = new TextView(this);
+        TextView nomeUsuario = findViewById(R.id.nomeUsuarioTextView);
         String nome = account.getDisplayName();
         nomeUsuario.setText(nome);
         */
@@ -206,13 +206,20 @@ public class LoginActivity extends AppCompatActivity {
      * Atualiza a interface com informações sobre o usuário
      * @param firebaseUser
      */
-    private void atualizarUI(FirebaseUser firebaseUser) {
+    public void atualizarUI(FirebaseUser firebaseUser) {
         /*
         TextView nomeUsuario = findViewById(R.id.nomeUsuarioTextView);
 
         String nome = firebaseUser.getDisplayName();
         Log.i("Atualizar UI", "Usuário: " + nome);
         nomeUsuario.setText(nome);
+        */
+    }
+
+    public void atualizarUI(String horario) {
+        /*
+        TextView horarioEntrada = findViewById(R.id.horarioEntradaTextView);
+        horarioEntrada.setText(horario);
         */
     }
 
@@ -227,7 +234,7 @@ public class LoginActivity extends AppCompatActivity {
      */
     public static FirebaseUser getUsuarioFirebase() {
         // Verificamos se há um usuário autenticado
-        Log.d("Firebase Auth", "getUsuarioFirebase()");
+        // Log.d("Firebase Auth", "getUsuarioFirebase()");
         // FirebaseUser firebase = mAuth.getCurrentUser();
         // Log.i("Firebase Auth", "Usuário Firebase: " + firebase);
         // Log.i("Firebase Auth", "Usuário Firebase: " + this.usuarioFirebase.getDisplayName());
@@ -236,7 +243,7 @@ public class LoginActivity extends AppCompatActivity {
             Log.d("Firebase Auth", "Usuário: " + usuarioFirebase.getDisplayName());
             return usuarioFirebase;
         } else {
-            Log.d("Firebase Auth", "getUsuarioFirebase() usuário nulo!");
+            Log.w("Firebase Auth", "getUsuarioFirebase() usuário nulo!");
             return null;
         }
     }
