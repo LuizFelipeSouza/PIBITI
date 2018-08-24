@@ -4,6 +4,7 @@ import android.util.Log;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -15,6 +16,8 @@ public class UsuarioDAO {
     private FirebaseDatabase fireRef = FirebaseDatabase.getInstance();
     // Referência ao nó usuario do banco
     private DatabaseReference usuarioRef;
+    private SimpleDateFormat formatoData = new SimpleDateFormat("yyyy/MMMM/dd");
+    private SimpleDateFormat formatoHora = new SimpleDateFormat("HH:mm");
 
     /**
      * Construtor vazio, necessário para chamadas a Datasnapshot.getValue(Usuario.class)
@@ -35,11 +38,13 @@ public class UsuarioDAO {
     public void atualizarHoras(Usuario usuario, Date horario) {
         // id = usuario.getMatricula();
         Log.i("Firebase", "Atualizando horas do usuário " + usuario.getNome()
-                + "\n" + "Horario: " + horario);
+                + "\n" + "Horario: " + formatoData.format(horario));
         usuarioRef = fireRef.getReference(usuario.getId());
         usuarioRef.child("nome").setValue(usuario.getNome());
-        usuarioRef.child("horario_entrada").setValue(horario);
-        long horarioFinal = horario.getTime();
+        //usuarioRef.child("Data").setValue(formatoData.format(horario));
+        usuarioRef.child(formatoData.format(horario)).child("Horario").setValue(formatoHora.format(horario));
+        // long horarioFinal = horario.getTime();
+        long horarioFinal = 0;
         usuarioRef.child("total_horas").setValue(horarioFinal);
     }
 }
