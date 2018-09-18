@@ -12,7 +12,7 @@ public class Usuario {
     private String nome;
     private String email;
     private String matricula;
-    private Date hrarioEntrada;
+    private Date horarioEntrada;
     private Date horarioSaida;
     private long numDeHoras;
 
@@ -60,15 +60,19 @@ public class Usuario {
     }
 
     public void setHorarioEntrada(Date horarioEntrada) {
-        this.horarioSaida = horarioEntrada;
+        this.horarioEntrada = horarioEntrada;
     }
 
     public Date getHorarioEntrada() {
-        return this.hrarioEntrada;
+        return this.horarioEntrada;
     }
 
     public void setHorarioSaida(Date horarioSaida) {
-        this.horarioSaida = horarioSaida;
+        if (horarioSaida == null) {
+            this.horarioSaida = this.horarioEntrada;
+        } else {
+            this.horarioSaida = horarioSaida;
+        }
     }
 
     public Date getHorarioSaida() {
