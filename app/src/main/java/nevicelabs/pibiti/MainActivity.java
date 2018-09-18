@@ -57,11 +57,7 @@ public class MainActivity extends AppCompatActivity implements
     private Geofence geofence;
     private PendingIntent mGeofencePendingIntent;
     // Coordenadas do DCOMP
-    // private double[] coordenadas = {-10.922625,-37.103885};
-    // Coordenadas do nevicelab
-    // private double[] coordenadas = {-11.150023,-37.616538};
-    // Coordenadas do nevicelab II
-    private double[] coordenadas ={-10.927088,-37.105261};
+    private double[] coordenadas = {-10.922625,-37.103885};
     // Cliente para as APIs Google
     private GoogleApiClient googleClient;
     // Lista de permissões
@@ -199,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements
                 }
                 for (Location location : locationResult.getLocations()) {
                     localizacaoAtual = location;
-                    // Log.i("Localização", "Localização atual: " + localizacaoAtual);
+                    //Log.i("Localização", "Localização atual: " + localizacaoAtual);
                 }
             }
         };

@@ -77,8 +77,8 @@ public class GeofenceTransitionsIntentService extends IntentService {
             if (tipoDeTransicao == Geofence.GEOFENCE_TRANSITION_EXIT) {
                 Log.d("Intent Service", "Saída no geofence");
                 horarioSaida = GregorianCalendar.getInstance().getTime();
-                mensagem = new Mensagem("Até logo!", "Você saiu do DCOMP às " + horarioSaida);
-                // Log.i("Intent Service", "Horário final: " + horarioSaida);
+                mensagem = new Mensagem("Até logo!", "Você saiu do DCOMP às "
+                        + formatoHora.format(horarioSaida));
 
                 horarioFinal = horarioSaida.getTime() - horarioEntrada.getTime();
                 Log.i("", "Horário final: " + horarioFinal);
@@ -100,7 +100,6 @@ public class GeofenceTransitionsIntentService extends IntentService {
             usuario.setImagemPerfil(usuarioFirebase.getPhotoUrl().toString());
             usuario.setNome(usuarioFirebase.getDisplayName());
             usuario.setEmail(usuarioFirebase.getEmail());
-            // TODO: Verificar se o horário de entrada está ficando como null
             usuario.setHorarioEntrada(horarioEntrada);
             usuario.setHorarioSaida(horarioSaida);
             // usuario.setNumDeHoras();
@@ -125,7 +124,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
             // Log.d("Firebase Database", "Persistindo usuário");
             UsuarioDAO dao = new UsuarioDAO();
 
-            /* Verificamos se o usuário já existe. Caso sim, apenas a tualizamos o hrário de saída
+            /* Verificamos se o usuário já existe. Caso sim, apenas atualizamos o horário de saída
              Do contrário, criamos um usuário com nome, e-mail e horário de entrada. */
             if(dao.usuarioExiste(usuario)) {
                 dao.atualizarHoras(usuario, horarioEntrada);
