@@ -24,27 +24,23 @@ public class UsuarioDAO {
      */
     public UsuarioDAO() {}
 
-    public void adicionar(Usuario usuario) {
-        Log.i("Firebase", "Armazendando " + usuario.getNome() + " no Firebase");
-        usuarioRef.child("horario_entrada").setValue(usuario.getHorarioEntrada());
-    }
+    public void atualizarHoras(Usuario usuario) {
+        Log.i("Firebase", "Atualizando horas do usuário " + usuario.getNome());
 
-    public boolean usuarioExiste(Usuario usuario) {
-        String id = usuario.getId();
-        // Verifica se o id já existe no banco de dados
-        return true;
-    }
-
-    public void atualizarHoras(Usuario usuario, Date horario) {
-        // id = usuario.getMatricula();
-        Log.i("Firebase", "Atualizando horas do usuário " + usuario.getNome()
-                + "\n" + "Horario: " + formatoData.format(horario));
         usuarioRef = fireRef.getReference(usuario.getId());
         usuarioRef.child("nome").setValue(usuario.getNome());
-        //usuarioRef.child("Data").setValue(formatoData.format(horario));
-        usuarioRef.child(formatoData.format(horario)).child("Horario").setValue(formatoHora.format(horario));
-        // long horarioFinal = horario.getTime();
+
+        usuarioRef.child(formatoData.format(usuario.getHorarioEntrada()))
+                .child("horarios")
+                .child("horario_entrada")
+                .setValue(formatoHora.format(usuario.getHorarioEntrada()));
+
+        usuarioRef.child(formatoData.format(usuario.getHorarioSaida()))
+                .child("horarios")
+                .child("horario_entrada")
+                .setValue(formatoHora.format(usuario.getHorarioSaida()));
+
         long horarioFinal = 0;
-        usuarioRef.child("total_horas").setValue(horarioFinal);
+        usuarioRef.child("total_horas").setValue(usuario.getNumDeHoras());
     }
 }

@@ -93,22 +93,17 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
         FirebaseUser usuarioFirebase = LoginActivity.getUsuarioFirebase();
 
-        if (usuarioFirebase != null) {
-            // Log.i("Firebase Auth", "Montando usuário");
-            Usuario usuario = new Usuario();
-            usuario.setId(usuarioFirebase.getUid());
-            usuario.setImagemPerfil(usuarioFirebase.getPhotoUrl().toString());
-            usuario.setNome(usuarioFirebase.getDisplayName());
-            usuario.setEmail(usuarioFirebase.getEmail());
-            usuario.setHorarioEntrada(horarioEntrada);
-            usuario.setHorarioSaida(horarioSaida);
-            // usuario.setNumDeHoras();
+        // Log.i("Firebase Auth", "Montando usuário");
+        Usuario usuario = new Usuario();
+        usuario.setId(usuarioFirebase.getUid());
+        usuario.setImagemPerfil(usuarioFirebase.getPhotoUrl().toString());
+        usuario.setNome(usuarioFirebase.getDisplayName());
+        usuario.setEmail(usuarioFirebase.getEmail());
+        usuario.setHorarioEntrada(horarioEntrada);
+        usuario.setHorarioSaida(horarioSaida);
+        usuario.setNumDeHoras(0);
 
-            return usuario;
-        } else {
-            Log.w("Firebase Auth", "Usuário nulo!");
-            return null;
-        }
+        return usuario;
     }
 
     /**
@@ -123,15 +118,17 @@ public class GeofenceTransitionsIntentService extends IntentService {
         if (usuarioFirebase != null) {
             // Log.d("Firebase Database", "Persistindo usuário");
             UsuarioDAO dao = new UsuarioDAO();
+            dao.atualizarHoras(usuario);
 
             /* Verificamos se o usuário já existe. Caso sim, apenas atualizamos o horário de saída
-             Do contrário, criamos um usuário com nome, e-mail e horário de entrada. */
+             Do contrário, criamos um usuário com nome, e-mail e horário de entrada.
             if(dao.usuarioExiste(usuario)) {
                 dao.atualizarHoras(usuario, horarioEntrada);
             } else {
                 dao.adicionar(usuario);
                 Log.i("Firebase Database", "Usuario adicionado");
             }
+            */
         } else {
             Log.d("Firebase Database", "Usuário nulo!");
         }
