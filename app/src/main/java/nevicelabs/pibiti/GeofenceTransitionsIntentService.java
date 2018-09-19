@@ -129,8 +129,8 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
         intent.putExtra("nome", usuario.getNome());
         intent.putExtra("imagemPerfil", usuario.getImagemPerfil());
-        intent.putExtra("horarioEntrada", formatoData.format(horarioEntrada));
-        // intent.putExtra("horarioSaida", formatoData.format(horarioSaida));
+        intent.putExtra("horarioEntrada", formatoData.format(usuario.getHorarioEntrada()));
+        intent.putExtra("horarioSaida", formatoData.format(usuario.getHorarioSaida()));
         intent.putExtra("totalHoras", usuario.getNumDeHoras());
 
         sendBroadcast(intent);

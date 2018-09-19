@@ -37,10 +37,9 @@ public class UsuarioDAO {
 
         usuarioRef.child(formatoData.format(usuario.getHorarioSaida()))
                 .child("horarios")
-                .child("horario_entrada")
+                .child("horario_saida")
                 .setValue(formatoHora.format(usuario.getHorarioSaida()));
 
-        long horarioFinal = 0;
         usuarioRef.child("total_horas").setValue(usuario.getNumDeHoras());
     }
 }

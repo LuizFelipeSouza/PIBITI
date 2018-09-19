@@ -57,9 +57,9 @@ public class MainActivity extends AppCompatActivity implements
     private Geofence geofence;
     private PendingIntent mGeofencePendingIntent;
     // Coordenadas do DCOMP
-    // private double[] coordenadas = {-10.922625,-37.103885};
+    private double[] coordenadas = {-10.922625,-37.103885};
     // Coordenadas de teste
-    private double[] coordenadas = {-10.927087,-37.105267};
+    // private double[] coordenadas = {-10.927087,-37.105267};
     // Cliente para as APIs Google
     private GoogleApiClient googleClient;
     // Lista de permissões
