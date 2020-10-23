@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PIBITI</string>
+    <string name="app_name">Hora do Café</string>
 
     <!-- Estas duas strings estão definidas no projeto em Google Developer -->
     <string name="Namespace">beacon-project-198921</string>

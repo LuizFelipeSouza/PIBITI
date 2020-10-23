@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/PIBITI.iml" filepath="$PROJECT_DIR$/PIBITI.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/PIBITI-app.iml" filepath="$PROJECT_DIR$/app/PIBITI-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/StudioProjects-PIBITI.iml" filepath="$PROJECT_DIR$/StudioProjects-PIBITI.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
